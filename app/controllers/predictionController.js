@@ -8,13 +8,27 @@ const heartDiseaseTestingData = require("../../heartdiseaseTesting.json");
 
 // Function to train and predict
 exports.trainAndPredict = async function (req, res) {
-  // Prepare the data
+
   // const trainingData = tf.tensor2d(heartDiseaseData.map(item => [
   //     item.age, item.sex, item.cp, item.trestbps, item.chol,
   //     item.fbs, item.restecg, item.thalach, item.exang, item.oldepeak,
   //     item.slope, parseFloat(item.ca), parseFloat(item.thal),
 
   // ]));
+
+  //receive user input
+  const userInput = req.body;
+  const inputData = tf.tensor2d([[
+    parseFloat(userInput.age),
+    userInput.sex === "1" ? 1 : 0,
+    parseFloat(userInput.cp),
+    parseFloat(userInput.trestbps),
+    parseFloat(userInput.chol),
+    userInput.fbs === "1" ? 1 : 0,
+    parseFloat(userInput.thalach)
+  ]]);
+
+  // Prepare the data
   const trainingData = tf.tensor2d(
     heartDiseaseData.map((item) => [
       parseFloat(item.age),
@@ -23,13 +37,13 @@ exports.trainAndPredict = async function (req, res) {
       parseFloat(item.trestbps),
       parseFloat(item.chol),
       item.fbs === "1" ? 1 : 0,
-      parseFloat(item.restecg),
+     // parseFloat(item.restecg),
       parseFloat(item.thalach),
-      item.exang === "1" ? 1 : 0,
-      parseFloat(item.oldepeak),
-      parseFloat(item.slope),
-      item.ca === "?" ? 0 : parseFloat(item.ca),
-      item.thal === "?" ? 0 : parseFloat(item.thal),
+     // item.exang === "1" ? 1 : 0,
+    //  parseFloat(item.oldepeak),
+    //  parseFloat(item.slope),
+     // item.ca === "?" ? 0 : parseFloat(item.ca),
+     // item.thal === "?" ? 0 : parseFloat(item.thal),
     ])
   );
 
@@ -54,7 +68,7 @@ exports.trainAndPredict = async function (req, res) {
   //   model.add(tf.layers.dense({ units: 1, activation: "sigmoid" })); // Binary classification output layer
   model.add(
     tf.layers.dense({
-      inputShape: [13],
+      inputShape: [7],
       units: 20,
       activation: "relu",
       kernelRegularizer: tf.regularizers.l2({ l2: 0.001 }),
@@ -89,30 +103,34 @@ exports.trainAndPredict = async function (req, res) {
       },
     },
   });
-
+  const prediction = model.predict(inputData);
+  await prediction.data().then(predictionData => {
+    const predictedClass = predictionData[0] > 0.5 ? "Yes" : "No";
+    res.json({ prediction: predictedClass });
+  });
   // Predict the testing data
-  const testingData = tf.tensor2d(
-    heartDiseaseTestingData.map((item) => [
-      item.age,
-      item.sex,
-      item.cp,
-      item.trestbps,
-      item.chol,
-      item.fbs,
-      item.restecg,
-      item.thalach,
-      item.exang,
-      item.oldepeak,
-      item.slope,
-      parseFloat(item.ca),
-      parseFloat(item.thal),
-    ])
-  );
+  // const testingData = tf.tensor2d(
+  //   heartDiseaseTestingData.map((item) => [
+  //     item.age,
+  //     item.sex,
+  //     item.cp,
+  //     item.trestbps,
+  //     item.chol,
+  //     item.fbs,
+  //    // item.restecg,
+  //     item.thalach,
+  //    // item.exang,
+  //    // item.oldepeak,
+  //    // item.slope,
+  //    // parseFloat(item.ca),
+  //    // parseFloat(item.thal),
+  //   ])
+  // );
 
-  const predictions = model.predict(testingData);
-  predictions.print(); // Optionally print the predictions to the console
+  // const predictions = model.predict(testingData);
+  // predictions.print(); // Optionally print the predictions to the console
 
-  // Convert predictions to an array and send as a response
-  const predictedClasses = await predictions.dataSync();
-  res.json(predictedClasses.map((pred) => (pred > 0.5 ? 1 : 0))); // Convert sigmoid outputs to binary classes
+  // // Convert predictions to an array and send as a response
+  // const predictedClasses = await predictions.dataSync();
+  // res.json(predictedClasses.map((pred) => (pred > 0.5 ? 1 : 0))); // Convert sigmoid outputs to binary classes
 };
