@@ -6,6 +6,23 @@ const path = require("path");
 const heartDiseaseData = require("../../heartdisease.json");
 const heartDiseaseTestingData = require("../../heartdiseaseTesting.json");
 
+// Normalize data function
+function normalize(data) {
+  return data.map(item => ({
+      age: (item.age - 54) / 9,
+      sex: item.sex === "1" ? 1 : 0,
+      cp: (item.cp - 3) / 1,
+      trestbps: (item.trestbps - 131) / 17,
+      chol: (item.chol - 246) / 51,
+      fbs: item.fbs === "1" ? 1 : 0,
+      thalach: (item.thalach - 149) / 23,
+      num: item.num === 0 ? 0 : 1
+  }));
+}
+
+const normalizedHeartDiseaseData = normalize(heartDiseaseData);
+
+
 // Function to train and predict
 exports.trainAndPredict = async function (req, res) {
 
@@ -20,23 +37,27 @@ exports.trainAndPredict = async function (req, res) {
   const userInput = req.body;
   const inputData = tf.tensor2d([[
     parseFloat(userInput.age),
-    userInput.sex === "1" ? 1 : 0,
+    //userInput.sex === 1 ? 1 : 0,
+    parseFloat(userInput.sex),
     parseFloat(userInput.cp),
     parseFloat(userInput.trestbps),
     parseFloat(userInput.chol),
-    userInput.fbs === "1" ? 1 : 0,
+    parseFloat(userInput.fbs),
+    //userInput.fbs === 1 ? 1 : 0,
     parseFloat(userInput.thalach)
   ]]);
 
   // Prepare the data
   const trainingData = tf.tensor2d(
-    heartDiseaseData.map((item) => [
+    normalizedHeartDiseaseData.map((item) => [
       parseFloat(item.age),
-      item.sex === "1" ? 1 : 0,
+    //  item.sex === 1 ? 1 : 0,
+      parseFloat(item.sex),
       parseFloat(item.cp),
       parseFloat(item.trestbps),
       parseFloat(item.chol),
-      item.fbs === "1" ? 1 : 0,
+      parseFloat(item.fbs),
+      //item.fbs === 1 ? 1 : 0,
      // parseFloat(item.restecg),
       parseFloat(item.thalach),
      // item.exang === "1" ? 1 : 0,
@@ -48,7 +69,7 @@ exports.trainAndPredict = async function (req, res) {
   );
 
   const outputData = tf.tensor2d(
-    heartDiseaseData.map((item) => [
+    normalizedHeartDiseaseData.map((item) => [
       //item.num > 0 ? 1 : 0, // presence (1)    absence (0)
       item.num === 0 ? 0 : 1, // Assuming 'num' is the label indicating presence (1) or absence (0) of heart disease
     ])
