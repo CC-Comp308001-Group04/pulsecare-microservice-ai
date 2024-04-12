@@ -10,11 +10,11 @@ const heartDiseaseTestingData = require("../../heartdiseaseTesting.json");
 function normalize(data) {
   return data.map(item => ({
       age: (item.age - 54) / 9,
-      sex: item.sex === "1" ? 1 : 0,
+      sex: item.sex === 1 ? 1 : 0,
       cp: (item.cp - 3) / 1,
       trestbps: (item.trestbps - 131) / 17,
       chol: (item.chol - 246) / 51,
-      fbs: item.fbs === "1" ? 1 : 0,
+      fbs: item.fbs === 1 ? 1 : 0,
       thalach: (item.thalach - 149) / 23,
       num: item.num === 0 ? 0 : 1
   }));
