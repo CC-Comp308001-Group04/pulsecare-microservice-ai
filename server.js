@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 app.use('/api', predictionRoutes); 
 
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
 
 app.get('/', (req, res) => {
