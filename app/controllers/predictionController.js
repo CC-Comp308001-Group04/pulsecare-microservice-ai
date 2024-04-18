@@ -39,6 +39,7 @@ const stats = generateStats(heartDiseaseData, featureKeys);
 const normalizedHeartDiseaseData = normalize(heartDiseaseData, stats, featureKeys);
 
 exports.trainAndPredict = async function (req, res) {
+  console.log(req.body)
   const userInput = req.body;
   const normalizedInput = featureKeys.map(key => (parseFloat(userInput[key]) - stats[key].mean) / stats[key].stdDev);
 
@@ -71,6 +72,7 @@ exports.trainAndPredict = async function (req, res) {
   const prediction = model.predict(inputData);
   await prediction.data().then(predictionData => {
     const predictedProbability = predictionData[0] * 100;
-    res.json({ probability: `${predictedProbability.toFixed(2)}%` });
+        res.setHeader('Cache-Control', 'no-store')
+    res.json({ probability: predictedProbability.toFixed(2) });
   });
 };
